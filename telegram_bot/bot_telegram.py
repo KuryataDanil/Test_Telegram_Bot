@@ -2,7 +2,7 @@ from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 
-import os
+import os, json, string
 
 
 
@@ -27,7 +27,7 @@ async def command_start(message : types.Message):
 @dp.message_handler(commands = "help")
 async def command_help(message : types.Message):
 	try:
-		await bot.send_message(message.from_user.id, "Вот что я умею:")
+		await bot.send_message(message.from_user.id, "Вот что я умею")
 	except:
 		 await message.reply("Напишите боту в ЛС, вот ссылка:\nhttp://t.me/My_Test61_Bot")
 
@@ -46,7 +46,11 @@ async def command_help(message : types.Message):
 
 @dp.message_handler()
 async def echo_send(message: types.Message):
-	await bot.send_message(message.from_user.id, message.text)
+	if {i.lower().translate(str.maketrans('', '', string.punctuation)) for i in message.text.split(' ')}.intersection(set(json.load(open('cenz.json')))) != set():
+		await message.reply('Маты запрещены')
+		await message.delete()
+	else:
+		await bot.send_message(message.from_user.id, message.text)
 	'''
 	await message.answer(message.text)
 	await message.reply(message.text)
