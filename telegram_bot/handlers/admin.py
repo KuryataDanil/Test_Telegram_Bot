@@ -32,7 +32,6 @@ async def cm_start(message : types.Message, state = None):
 		await message.delete()
 	else:
 		await message.reply("Вы не админ данного бота!")
-		await message.reply(admin_ID)
 		await message.delete()
 
 
