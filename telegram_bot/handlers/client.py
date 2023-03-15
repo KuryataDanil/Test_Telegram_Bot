@@ -2,6 +2,9 @@ from aiogram import types, Dispatcher
 from create_bot import dp, bot
 from datetime import datetime
 
+## Data_Base
+from data_base import sqlite_db
+
 ## Keyboards
 from keyboards import kb_client, kb_quiz
 from aiogram.types import ReplyKeyboardRemove
@@ -26,28 +29,32 @@ async def command_help(message : types.Message):
 # Дата
 async def command_dataNow(message : types.Message):
 	try:
-		await bot.send_message(message.from_user.id, datetime.now().date(), reply_markup = ReplyKeyboardRemove())
+		await bot.send_message(message.from_user.id, datetime.now().date())#, reply_markup = ReplyKeyboardRemove())
 	except:
 		await bot.send_message(message.from_user.id, 'Неверная команда')
 
 # Время
 async def command_timeNow(message : types.Message):
 	try:
-		await bot.send_message(message.from_user.id, ':'.join(str(datetime.now().time()).split(':'))[:5], reply_markup = ReplyKeyboardRemove())
+		await bot.send_message(message.from_user.id, ':'.join(str(datetime.now().time()).split(':'))[:5])#, reply_markup = ReplyKeyboardRemove())
 	except:
 		await bot.send_message(message.from_user.id, 'Неверная команда')
 
 # Погода (в разработке)
 async def command_weather(message : types.Message):
 	try:
-		await bot.send_message(message.from_user.id, 'В разработке', reply_markup = ReplyKeyboardRemove())
+		await bot.send_message(message.from_user.id, 'В разработке')#, reply_markup = ReplyKeyboardRemove())
 	except:
 		await bot.send_message(message.from_user.id, 'Неверная команда')
 
+#Подзрузка интересных мест из базы данных 
+async def command_interestingPlaces(message : types.Message):
+	await sqlite_db.sql_read(message)
+	
 
 
 
-# Викторина
+# Викторина (дописать машину состояний и перенести в отдельный файл)
 async def command_startQuiz(message : types.Message):
 	try:
 		await bot.send_message(message.from_user.id,'Начинаем квиз', reply_markup = ReplyKeyboardRemove())
@@ -70,7 +77,7 @@ def register_handlers_client(dp : Dispatcher):
 	dp.register_message_handler(command_dataNow, commands = ['дата'])
 	dp.register_message_handler(command_timeNow, commands = ['время'])
 	dp.register_message_handler(command_weather, commands = ['погода'])
-
+	dp.register_message_handler(command_interestingPlaces, commands = ['Интересные_места_Ростова'])
 
 	dp.register_message_handler(command_exit, commands = ['Выход'])
 	dp.register_message_handler(command_startQuiz, commands = ['Квиз'])

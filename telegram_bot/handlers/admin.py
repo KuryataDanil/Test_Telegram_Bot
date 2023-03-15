@@ -3,6 +3,9 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import types, Dispatcher
 from create_bot import dp, bot
 
+## Data_Base
+from data_base import sqlite_db
+
 import os
 
 ## Keyboards
@@ -23,16 +26,31 @@ class FSMAdmin(StatesGroup):
 	name = State()
 	desсription = State()
 
-admin_ID = os.getenv('AdminId')
 
+#Вход в админскую панель
+admin_ID = os.getenv('AdminId')
 async def cm_start(message : types.Message, state = None):
-	if str(message.from_user.id) == admin_ID:
+	if str(message.from_user.id) in admin_ID:
 		await FSMAdmin.admin_panel.set()
 		await message.reply("Вы вошли в админускую панель", reply_markup = kb_admin)
 		await message.delete()
 	else:
 		await message.reply("Вы не админ данного бота!")
 		await message.delete()
+
+
+#Отмена добавления 
+async def cancel_handler(message: types.Message, state: FSMContext):
+	current_state = await state.get_state()
+	if current_state is None:
+		return
+	await FSMAdmin.admin_panel.set()
+	await message.reply('Добавление отменено',reply_markup = kb_admin)
+
+#Выход из панели админа
+async def backToUser_handler(message: types.Message, state: FSMContext):
+	await message.reply('Вы вышли из панели админа',reply_markup = kb_client)
+	await state.finish()
 
 
 #Начало добавления
@@ -53,34 +71,29 @@ async def load_name(message: types.Message, state: FSMContext):
 	async with state.proxy() as data:
 		data['name'] = message.text
 	await FSMAdmin.next()
-	await message.reply("Введите краткое описание темы")
+	await message.reply("Введите краткое описание")
 
 
 async def load_desсription(message: types.Message, state: FSMContext):
 	async with state.proxy() as data:
 		data['desсription'] = message.text
-	await message.reply('Добавление прошло успешно',reply_markup = kb_admin)
-
+		
+	try:
+		await sqlite_db.sql_add_command(state)
+		await message.reply('Добавление прошло успешно',reply_markup = kb_admin)
+	except:
+		await bot.send_message(message.from_user.id,'Элемент с таким названием уже было добавлено ранее',reply_markup = kb_admin)
+	'''
 	#Временное решение без базы данных (для тестирования)
 	async with state.proxy() as data:
 		await message.reply(str(data))
+	'''
 	await state.finish()
 	await FSMAdmin.admin_panel.set()
 #########################################################################
 
 
-#Отмена добавления 
-async def cancel_handler(message: types.Message, state: FSMContext):
-	current_state = await state.get_state()
-	if current_state is None:
-		return
-	await FSMAdmin.admin_panel.set()
-	await message.reply('Добавление отменено',reply_markup = kb_admin)
 
-#Выход из панели админа
-async def backToUser_handler(message: types.Message, state: FSMContext):
-	await message.reply('Вы вышли из панели админа',reply_markup = kb_client)
-	await state.finish()
 
 
 def register_handlers_admin(dp: Dispatcher):
