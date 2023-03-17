@@ -10,7 +10,8 @@ import os
 
 ## Keyboards
 from keyboards import kb_admin, kb_client
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
+
 
 
 
@@ -93,9 +94,23 @@ async def load_desсription(message: types.Message, state: FSMContext):
 #########################################################################
 
 
+# Удаление
+#########################################################################
+async def del_callback_run(callback_query: types.CallbackQuery):
+	await sqlite_db.sql_delete_command(callback_query.data.replace('del ', ''))
+	await callback_query.answer(text=f'{callback_query.data.replace("del ", "")} удалена.', show_alert=True)
 
 
+async def delete_item(message: types.Message):
+	read = await sqlite_db.sql_read2()
+	for ret in read:
+		await bot.send_photo(message.from_user.id, ret[0], f'{ret[1]}\nОписание: {ret[2]}')
+		await bot.send_message(message.from_user.id, text='^^^', reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(f'Удалить {ret[1]}', callback_data=f'del {ret[1]}')))
 
+#########################################################################
+
+
+# Регистрация хэндлеров
 def register_handlers_admin(dp: Dispatcher):
 	dp.register_message_handler(cancel_handler, commands = 'Отмена', state="*")
 	dp.register_message_handler(backToUser_handler, commands = ['Выйти_из_режима_админа'], state = FSMAdmin.admin_panel)
@@ -104,4 +119,6 @@ def register_handlers_admin(dp: Dispatcher):
 	dp.register_message_handler(load_photo, content_types=['photo'], state = FSMAdmin.photo)
 	dp.register_message_handler(load_name, state = FSMAdmin.name)
 	dp.register_message_handler(load_desсription, state = FSMAdmin.desсription)
+	dp.register_message_handler(delete_item, commands=['Удалить'], state = FSMAdmin.admin_panel)
+	dp.register_callback_query_handler(del_callback_run, (lambda x: x.data and x.data.startswith('del ')), state = FSMAdmin.admin_panel)
 	

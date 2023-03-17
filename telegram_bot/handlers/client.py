@@ -71,6 +71,7 @@ async def command_exit(message : types.Message):
 		await bot.send_message(message.from_user.id, 'Неверная команда')
 
 
+# Регистрация хэндлеров
 def register_handlers_client(dp : Dispatcher):
 	dp.register_message_handler(command_start, commands = ['start'])
 	dp.register_message_handler(command_help, commands = ['help'])
