@@ -49,14 +49,16 @@ async def command_timeNow(message : types.Message):
 
 # Погода
 token_weather = os.getenv('WEATHER_TOKEN')
-city = "rostov-on-don"
-async def command_weather(message : types.Message):
+
+async def command_weather(message: types.Message):
 	try:
 		# Запрос
+		city = "rostov-on-don"
 		r = requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={token_weather}&units=metric&lang=ru")
 		data = r.json()
 		weather_main_description = data["weather"][0]["main"]
 		# weather_description = data["weather"][0]["description"]
+
 		# Словарь погода -> эмоджи
 		code_to_smile = {
 			"Clear": "Ясно \U00002600",
@@ -101,6 +103,21 @@ async def command_interestingPlaces(message: types.Message):
 	await sqlite_db.sql_read(message)
 	
 
+# Случайное занятие
+async def command_ex(message: types.Message):
+	try:
+		r = requests.get(f"https://www.boredapi.com/api/activity")
+		data = r.json()
+		# pprint(data)
+		cur_ex = str(data["activity"])
+		translation = translator.translate(cur_ex, src='en', dest='ru')
+		await bot.send_message(message.from_user.id, translation.text)
+
+	except:
+		await message.reply('Неверная команда')
+
+
+
 
 # Викторина (дописать машину состояний и перенести в отдельный файл)
 async def command_startQuiz(message : types.Message):
@@ -140,6 +157,7 @@ def register_handlers_client(dp: Dispatcher):
 	dp.register_message_handler(command_weather, commands=['погода'])
 	dp.register_message_handler(command_interestingPlaces, commands=['Интересные_места_Ростова'])
 	dp.register_message_handler(command_advice, commands=['Полезный_совет'])
+	dp.register_message_handler(command_ex, commands=['Не_знаю_чем_заняться'])
 
 	dp.register_message_handler(command_exit, commands=['Выход'])
 	dp.register_message_handler(command_startQuiz, commands=['Квиз'])
