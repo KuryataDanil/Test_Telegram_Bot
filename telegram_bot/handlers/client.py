@@ -12,12 +12,12 @@ from pprint import pprint
 from data_base import sqlite_db
 
 # Keyboards
-from keyboards import kb_client, kb_quiz
+from keyboards import kb_client
 from aiogram.types import ReplyKeyboardRemove
 
 # Start
 # @dp.message_handler(commands = "start")
-async def command_start(message : types.Message):
+async def command_start(message: types.Message):
 	try:
 		await bot.send_message(message.from_user.id, "Здравсвуйте, чем я могу быть полезен?\nВот список моих команд", reply_markup=kb_client)
 	except:
@@ -26,21 +26,21 @@ async def command_start(message : types.Message):
 
 # Help
 # @dp.message_handler(commands = "help")
-async def command_help(message : types.Message):
+async def command_help(message: types.Message):
 	try:
 		await bot.send_message(message.from_user.id, 'Вот что я умею', reply_markup=kb_client)
 	except:
 		await message.reply("Напишите боту в ЛС, вот ссылка:\nhttp://t.me/My_Test61_Bot")
 
 # Дата
-async def command_dataNow(message : types.Message):
+async def command_dataNow(message: types.Message):
 	try:
 		await bot.send_message(message.from_user.id, datetime.now().date())#, reply_markup = ReplyKeyboardRemove())
 	except:
 		await bot.send_message(message.from_user.id, 'Неверная команда')
 
 # Время
-async def command_timeNow(message : types.Message):
+async def command_timeNow(message: types.Message):
 	try:
 		await bot.send_message(message.from_user.id, ':'.join(str(datetime.now().time()).split(':'))[:5])#, reply_markup = ReplyKeyboardRemove())
 	except:
@@ -104,40 +104,38 @@ async def command_interestingPlaces(message: types.Message):
 	
 
 # Случайное занятие
+token_job = os.getenv('JOB_TOKEN')
 async def command_ex(message: types.Message):
 	try:
 		r = requests.get(f"https://www.boredapi.com/api/activity")
 		data = r.json()
-		# pprint(data)
 		cur_ex = str(data["activity"])
-		translation = translator.translate(cur_ex, src='en', dest='ru')
-		await bot.send_message(message.from_user.id, translation.text)
+		# pprint(data)
+		api_url = f'https://api.api-ninjas.com/v1/randomimage?category=abstract&width=3840&height=2160'
+		response = requests.get(api_url, headers={'X-Api-Key': token_job, 'Accept': 'image/jpg'}, stream=True)
 
+		translation = translator.translate(cur_ex, src='en', dest='ru')
+		await bot.send_photo(message.from_user.id, response.content, translation.text)
+		# await bot.send_message(message.from_user.id, translation.text)
 	except:
 		await message.reply('Неверная команда')
 
 
 
+# Да или нет
+translator = Translator()
 
-# Викторина (дописать машину состояний и перенести в отдельный файл)
-async def command_startQuiz(message : types.Message):
+
+async def command_yesOrNo(message: types.Message):
 	try:
-		await bot.send_message(message.from_user.id, 'Начинаем квиз', reply_markup=ReplyKeyboardRemove())
-		await bot.send_message(message.from_user.id, 'Вопрос:', reply_markup=kb_quiz)
+		r = requests.get(f"https://yesno.wtf/api").json()
+		await bot.send_video(message.from_user.id, r['image'])
+		await bot.send_message(message.from_user.id, translator.translate(r['answer'], src='en', dest='ru').text)
 	except:
 		await bot.send_message(message.from_user.id, 'Неверная команда')
 
-
-async def command_exit(message : types.Message):
-	try:
-		await bot.send_message(message.from_user.id, 'Квиз окончен', reply_markup=ReplyKeyboardRemove())
-		await bot.send_message(message.from_user.id, 'Выберете следующее дейсвие', reply_markup=kb_client)
-	except:
-		await bot.send_message(message.from_user.id, 'Неверная команда')
-##################################################################
 
 # Совет
-translator = Translator()
 async def command_advice(message: types.Message):
 	try:
 		ad = requests.get(f"https://api.adviceslip.com/advice")
@@ -147,6 +145,7 @@ async def command_advice(message: types.Message):
 		await message.reply(f"{translation.text}")
 	except:
 		await bot.send_message(message.from_user.id, 'Неверная команда')
+
 
 # Регистрация хэндлеров
 def register_handlers_client(dp: Dispatcher):
@@ -158,6 +157,4 @@ def register_handlers_client(dp: Dispatcher):
 	dp.register_message_handler(command_interestingPlaces, commands=['Интересные_места_Ростова'])
 	dp.register_message_handler(command_advice, commands=['Полезный_совет'])
 	dp.register_message_handler(command_ex, commands=['Не_знаю_чем_заняться'])
-
-	dp.register_message_handler(command_exit, commands=['Выход'])
-	dp.register_message_handler(command_startQuiz, commands=['Квиз'])
+	dp.register_message_handler(command_yesOrNo, commands=['Да_или_нет'])
