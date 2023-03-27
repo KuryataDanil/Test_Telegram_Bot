@@ -26,10 +26,11 @@ class FSMAdmin(StatesGroup):
 	photo = State()
 	name = State()
 	open_hours = State()
+	address = State()
 	desсription = State()
 
 
-#Вход в админскую панель
+# Вход в админскую панель
 admin_ID = os.getenv('AdminId')
 async def cm_start(message : types.Message, state = None):
 	if str(message.from_user.id) in admin_ID:
@@ -80,6 +81,13 @@ async def load_open_hours(message: types.Message, state: FSMContext):
 	async with state.proxy() as data:
 		data['open_hours'] = message.text
 	await FSMAdmin.next()
+	await message.reply("Введите адрес места")
+
+
+async def load_address(message: types.Message, state: FSMContext):
+	async with state.proxy() as data:
+		data['address'] = message.text
+	await FSMAdmin.next()
 	await message.reply("Введите краткое описание")
 
 
@@ -111,7 +119,7 @@ async def del_callback_run(callback_query: types.CallbackQuery):
 async def delete_item(message: types.Message):
 	read = await sqlite_db.sql_read2()
 	for ret in read:
-		await bot.send_photo(message.from_user.id, ret[0], f'{ret[1]}\nОписание: {ret[2]}')
+		await bot.send_photo(message.from_user.id, ret[0], f'{ret[1]}\n*Открыто:* {ret[2]}\n*Адрес:* {ret[3]}\n*Описание:* {ret[4]}', parse_mode="Markdown")
 		await bot.send_message(message.from_user.id, text='^^^', reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(f'Удалить {ret[1]}', callback_data=f'del {ret[1]}')))
 
 #########################################################################
@@ -126,6 +134,7 @@ def register_handlers_admin(dp: Dispatcher):
 	dp.register_message_handler(load_photo, content_types=['photo'], state=FSMAdmin.photo)
 	dp.register_message_handler(load_name, state=FSMAdmin.name)
 	dp.register_message_handler(load_open_hours, state=FSMAdmin.open_hours)
+	dp.register_message_handler(load_address, state=FSMAdmin.address)
 	dp.register_message_handler(load_desсription, state=FSMAdmin.desсription)
 	dp.register_message_handler(delete_item, commands=['Удалить'], state=FSMAdmin.admin_panel)
 	dp.register_callback_query_handler(del_callback_run, (lambda x: x.data and x.data.startswith('del ')), state=FSMAdmin.admin_panel)
