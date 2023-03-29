@@ -11,7 +11,7 @@ from pprint import pprint
 async def on_startup(_):
 	print("Бот включён")
 	sqlite_db.sql_start()
-	for i in range(5):
+	for i in range(3):
 		await Create_queue_ex()
 	print("Очередь 'дел' создана")
 	# pprint(queue_of_ex)

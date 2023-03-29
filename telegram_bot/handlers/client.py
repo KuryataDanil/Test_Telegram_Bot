@@ -16,11 +16,22 @@ from data_base import sqlite_db
 from keyboards import kb_client
 from aiogram.types import ReplyKeyboardRemove
 
+
+enter_message = "Вот список моих команд:\n" \
+				"*/дата* - показывает текущую дату\n" \
+				"*/время* - показывает текущее время\n" \
+				"*/погода* - показывает погоду в Ростове-на-Дону\n" \
+				"*/Интересные_места_Ростова* - показывает места Ростова, в которых можно с удовольствием провести время\n" \
+				"*/Полезный_совет* - даёт совет, который поможет вам в жизни\n" \
+				"*/Не_знаю_чем_заняться* - если вам скучно и нечего делать, бот найдёт вам интересное занятие\n" \
+				"*/Да_или_нет* - если у вас не получается принять решение, бот поможет вам это сделать"
+
+
 # Start
 # @dp.message_handler(commands = "start")
 async def command_start(message: types.Message):
 	try:
-		await bot.send_message(message.from_user.id, "Здравсвуйте, чем я могу быть полезен?\nВот список моих команд", reply_markup=kb_client)
+		await bot.send_message(message.from_user.id, "Здравствуйте, чем я могу быть полезен?\n" + enter_message, reply_markup=kb_client, parse_mode="Markdown")
 	except:
 		await message.reply("Напишите боту в ЛС, вот ссылка:\nhttp://t.me/My_Test61_Bot")
 
@@ -29,9 +40,10 @@ async def command_start(message: types.Message):
 # @dp.message_handler(commands = "help")
 async def command_help(message: types.Message):
 	try:
-		await bot.send_message(message.from_user.id, 'Вот что я умею', reply_markup=kb_client)
+		await bot.send_message(message.from_user.id, enter_message, reply_markup=kb_client, parse_mode="Markdown")
 	except:
 		await message.reply("Напишите боту в ЛС, вот ссылка:\nhttp://t.me/My_Test61_Bot")
+
 
 # Дата
 async def command_dataNow(message: types.Message):
@@ -39,6 +51,7 @@ async def command_dataNow(message: types.Message):
 		await bot.send_message(message.from_user.id, datetime.now().date())#, reply_markup = ReplyKeyboardRemove())
 	except:
 		await bot.send_message(message.from_user.id, 'Неверная команда')
+
 
 # Время
 async def command_timeNow(message: types.Message):
@@ -50,6 +63,7 @@ async def command_timeNow(message: types.Message):
 
 # Погода
 token_weather = os.getenv('WEATHER_TOKEN')
+
 
 async def command_weather(message: types.Message):
 	try:
@@ -93,8 +107,12 @@ async def command_weather(message: types.Message):
 		sunrise_times = str(datetime.fromtimestamp(data["sys"]["sunrise"]))[11:16]
 		# print(sunrise_times, type(sunrise_times))
 		sunset_times = str(datetime.fromtimestamp(data["sys"]["sunset"]))[11:16]
-		await bot.send_message(message.from_user.id, f"{weather_smile}\nТемпература {cur_weather}° {cur_weather_smile}\nВлажность {humidity}%\nДавление {pressure} мм.рт.ст\nВетер {wind} м/с\nВосход солнца {sunrise_times}\nЗаход солнца {sunset_times}")
-		# pprint(data)
+		await bot.send_message(message.from_user.id, f"{weather_smile}\n"
+													 f"Температура {cur_weather}° {cur_weather_smile}\n"
+													 f"Влажность {humidity}%\nДавление {pressure} мм.рт.ст\n"
+													 f"Ветер {wind} м/с\n"
+													 f"Восход солнца {sunrise_times}\n"
+													 f"Заход солнца {sunset_times}")
 	except:
 		await bot.send_message(message.from_user.id, 'Неверная команда')
 
@@ -102,10 +120,9 @@ async def command_weather(message: types.Message):
 # Подгрузка интересных мест из базы данных
 async def command_interestingPlaces(message: types.Message):
 	await sqlite_db.sql_read(message)
-	
+
 
 # Случайное занятие
-
 async def command_ex(message: types.Message):
 	try:
 		'''
