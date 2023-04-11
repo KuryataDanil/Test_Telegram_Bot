@@ -1,5 +1,5 @@
 from aiogram import types, Dispatcher
-from create_bot import dp, bot, Create_queue_ex, queue_of_ex
+from create_bot import dp, bot
 from datetime import datetime
 import os
 import requests
@@ -123,10 +123,11 @@ async def command_interestingPlaces(message: types.Message):
 
 
 # Случайное занятие
+token_job = os.getenv('JOB_TOKEN')
+
+
 async def command_ex(message: types.Message):
 	try:
-		'''
-		queue_of_ex = deque()
 		r = requests.get(f"https://www.boredapi.com/api/activity")
 		data = r.json()
 		cur_ex = str(data["activity"])
@@ -134,11 +135,8 @@ async def command_ex(message: types.Message):
 		api_url = f'https://api.api-ninjas.com/v1/randomimage?category=abstract&width=3840&height=2160'
 		response = requests.get(api_url, headers={'X-Api-Key': token_job, 'Accept': 'image/jpg'}, stream=True)
 		translation = translator.translate(cur_ex, src='en', dest='ru')
-		queue_of_ex.append([response, translation])
-		'''
-		x = queue_of_ex.pop()
+		x = ([response, translation])
 		await bot.send_photo(message.from_user.id, x[0].content, x[1].text)
-		await Create_queue_ex()
 		# pprint(queue_of_ex)
 		# await bot.send_message(message.from_user.id, translation.text)
 	except:
